@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-NexusFlow OS is a single-page React demo of a **beverage-distribution warehouse management UI** — a spatial aisle/bay/location map with drag-and-drop pallet moves, case/each units of measure, and live telemetry. It is a front-end-only simulation: all state is in-memory, there is no backend, API, router, or persistence (a page refresh resets everything; the "Reset Simulation" button rebuilds from seed data).
+Eagle View is a single-page React demo of a **beverage-distribution warehouse management UI** — a spatial aisle/bay/location map with drag-and-drop pallet moves, case/each units of measure, and live telemetry. It is a front-end-only simulation: all state is in-memory, there is no backend, API, router, or persistence (a page refresh resets everything; the "Reset Simulation" button rebuilds from seed data).
 
 ## Commands
 
@@ -35,7 +35,7 @@ The warehouse is a fixed grid sized by four constants at the top of `App.jsx`:
 
 ### State and data flow
 
-`slots` (a flat array of slot objects) is the **single source of truth**, held in the top-level `NexusFlowOS` component. Everything else is either UI state (`modal`, `dragCode`, `searchTerm`, `sortKey`/`sortDir`, `collapsed`, `activeTab`, `logs`) or a `useMemo` derivation of `slots`: `byCode` (lookup), `layout` (aisle→bay grouping for rendering), `emptyPrimaries`, `stats`, and the `pallets`/`filteredPallets`/`sortedPallets` chain that feeds the ledger table.
+`slots` (a flat array of slot objects) is the **single source of truth**, held in the top-level `EagleView` component. Everything else is either UI state (`modal`, `dragCode`, `searchTerm`, `sortKey`/`sortDir`, `collapsed`, `activeTab`, `logs`) or a `useMemo` derivation of `slots`: `byCode` (lookup), `layout` (aisle→bay grouping for rendering), `emptyPrimaries`, `stats`, and the `pallets`/`filteredPallets`/`sortedPallets` chain that feeds the ledger table.
 
 All mutations are pure, immutable `setSlots(prev => prev.map(...))` updates, centralized in a handful of callbacks: `movePallet` (drag), `adjustEaches` (pick/receive by case or single), `saveEdit`, `placePallet`, `emptySlot`. They also append to `logs` via `addLog`.
 

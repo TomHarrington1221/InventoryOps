@@ -565,7 +565,7 @@ function AisleLane({ aisle }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function NexusFlowOS() {
+export default function EagleView() {
   const [activeTab, setActiveTab]         = useState('layout');
   const [slots, setSlots]                 = useState(buildSlots);
   const [searchTerm, setSearchTerm]       = useState('');
@@ -779,7 +779,7 @@ export default function NexusFlowOS() {
         <div>
           <div className="flex items-center gap-2">
             <span className="bg-blue-500 text-xs text-slate-950 font-bold px-2 py-0.5 rounded animate-pulse">TELEMETRY ON</span>
-            <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">NexusFlow OS</h1>
+            <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Eagle View</h1>
           </div>
           <p className="text-sm text-slate-400 mt-1">Beverage Distribution · Spatial Layout &amp; Case / Each Stocking Matrix</p>
         </div>
@@ -941,7 +941,7 @@ export default function NexusFlowOS() {
 
           {/* AI Terminal */}
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5"><Terminal size={11} /> NexusFlow AI Terminal</h3>
+            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5"><Terminal size={11} /> Eagle View AI Terminal</h3>
             <p className="text-[10px] font-mono text-slate-600 mb-3 leading-relaxed">move &lt;src&gt; &lt;dst&gt; · pick / receive &lt;code&gt; &lt;n&gt;<br />fill · drain · restock · status · clear · help</p>
             <form onSubmit={handleTerminalSubmit} className="flex gap-2">
               <input value={terminalInput} onChange={(e) => setTerminalInput(e.target.value)} placeholder="enter command…"
