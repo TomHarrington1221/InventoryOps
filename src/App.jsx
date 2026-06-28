@@ -4,6 +4,7 @@ import {
   Boxes, BarChart3, Layers, Plus, Minus, Trash2, X,
   ChevronUp, ChevronDown, Pencil, Package, ArrowDown, MapPin,
   Wine, Martini, CupSoda, Droplet, PlusCircle, ImagePlus, PackagePlus,
+  UserRound, LogOut, LogIn, Route as RouteIcon, Truck, CheckCircle2, Circle,
 } from 'lucide-react';
 
 // ── Demo placeholder image generator (offline data-URI, used to show image history) ──
@@ -51,6 +52,30 @@ const SEED = {
 };
 
 const POS_PER_LEVEL = 2;   // positions auto-stacked per level when adding locations
+
+// ── Employees (mock sign-in) & pick routes ───────────────────────────────────
+const EMPLOYEES = [
+  { id: 'EMP-101', name: 'Dana Ruiz',  role: 'Picker',   pin: '1234' },
+  { id: 'EMP-102', name: 'Marcus Lee', role: 'Picker',   pin: '1234' },
+  { id: 'EMP-103', name: 'Priya Shah', role: 'Lead',     pin: '1234' },
+  { id: 'EMP-104', name: 'Sam Carter', role: 'Forklift', pin: '1234' },
+];
+const ROUTES = [
+  { id: 'RT-204', dest: 'Downtown Bars Loop',    assignedTo: null, lines: [
+    { id: 'a', code: '0-01-11', sku: 'SKU-4501', cases: 3, picked: false },
+    { id: 'b', code: '0-03-12', sku: 'SKU-4533', cases: 2, picked: false },
+    { id: 'c', code: '0-05-21', sku: 'SKU-9120', cases: 5, picked: false },
+  ] },
+  { id: 'RT-318', dest: 'Airport Hotels',        assignedTo: null, lines: [
+    { id: 'a', code: '1-03-21', sku: 'SKU-4520', cases: 4, picked: false },
+    { id: 'b', code: '0-02-21', sku: 'SKU-7725', cases: 2, picked: false },
+  ] },
+  { id: 'RT-422', dest: 'Stadium Concessions',   assignedTo: null, lines: [
+    { id: 'a', code: '0-05-11', sku: 'SKU-9120', cases: 6, picked: false },
+    { id: 'b', code: '1-05-11', sku: 'SKU-9135', cases: 8, picked: false },
+    { id: 'c', code: '1-01-11', sku: 'SKU-7740', cases: 3, picked: false },
+  ] },
+];
 
 // ── Catalog visuals ──────────────────────────────────────────────────────────
 const CATEGORY_VISUAL = {
@@ -551,6 +576,106 @@ function AisleLane({ aisle }) {
   );
 }
 
+// ── Employee login panel (simple mock sign-in) ───────────────────────────────
+function LoginPanel({ employees, currentUser, onLogin, onLogout }) {
+  const [sel, setSel] = useState(employees[0].id);
+  const [pin, setPin] = useState('');
+  const [err, setErr] = useState('');
+  const initials = (n) => n.split(' ').map((x) => x[0]).join('');
+
+  if (currentUser) {
+    return (
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
+        <div className="flex items-center gap-2 border-b border-slate-800 pb-4 mb-4"><UserRound className="text-cyan-400" size={18} /><h2 className="font-semibold text-slate-200">Employee Session</h2></div>
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-gradient-to-b from-cyan-700 to-blue-900 flex items-center justify-center text-lg font-bold text-white">{initials(currentUser.name)}</div>
+          <div className="flex-1 min-w-0"><p className="text-base font-bold text-slate-100">{currentUser.name}</p><p className="text-xs font-mono text-slate-500">{currentUser.id} · {currentUser.role}</p></div>
+          <button onClick={onLogout} className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-slate-800 hover:bg-red-950/50 hover:text-red-300 text-slate-300 transition"><LogOut size={13} /> Sign Out</button>
+        </div>
+        <p className="text-[11px] text-slate-500 mt-4">Signed in — pick &amp; receive actions log under your name, and you can claim routes in the <span className="text-cyan-400">Routes</span> tab.</p>
+      </div>
+    );
+  }
+  const emp = employees.find((x) => x.id === sel);
+  return (
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
+      <div className="flex items-center gap-2 border-b border-slate-800 pb-4 mb-4"><UserRound className="text-cyan-400" size={18} /><h2 className="font-semibold text-slate-200">Employee Login</h2></div>
+      <div className="grid sm:grid-cols-2 gap-2 mb-4">
+        {employees.map((e) => (
+          <button key={e.id} onClick={() => { setSel(e.id); setErr(''); }} className={`flex items-center gap-3 p-3 rounded-lg border text-left transition ${sel === e.id ? 'bg-blue-950/50 border-blue-600' : 'bg-slate-800/40 border-slate-700/50 hover:border-slate-600'}`}>
+            <div className="w-9 h-9 rounded-full bg-gradient-to-b from-slate-600 to-slate-800 flex items-center justify-center text-xs font-bold text-white flex-none">{initials(e.name)}</div>
+            <div className="min-w-0"><p className="text-sm font-bold text-slate-200 truncate">{e.name}</p><p className="text-[10px] font-mono text-slate-500">{e.id} · {e.role}</p></div>
+          </button>
+        ))}
+      </div>
+      <div className="flex items-end gap-2">
+        <div className="flex-1"><label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">PIN — {emp.name}</label>
+          <input type="password" value={pin} onChange={(e2) => { setPin(e2.target.value.replace(/[^0-9]/g, '')); setErr(''); }} placeholder="••••" maxLength={6}
+            className="w-full bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm font-mono tracking-widest text-slate-200 focus:outline-none focus:border-blue-500" /></div>
+        <button onClick={() => { if (emp && pin === emp.pin) onLogin(emp); else setErr('Incorrect PIN.'); }} className="flex items-center gap-1.5 text-sm font-bold px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition"><LogIn size={15} /> Sign In</button>
+      </div>
+      {err && <p className="text-[11px] text-red-400 mt-2">{err}</p>}
+      <p className="text-[10px] text-slate-600 mt-4 font-mono">Demo PIN for every employee: 1234</p>
+    </div>
+  );
+}
+
+// ── Pick routes panel (pick lists by route number) ───────────────────────────
+function RoutesPanel({ routes, currentUser, byCode, onStart, onPickLine }) {
+  const [openId, setOpenId] = useState(routes[0]?.id ?? null);
+  return (
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
+      <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
+        <div className="flex items-center gap-2"><RouteIcon className="text-cyan-400" size={18} /><h2 className="font-semibold text-slate-200">Pick Routes</h2></div>
+        <span className="text-[10px] font-mono text-slate-400">{routes.length} routes</span>
+      </div>
+      {!currentUser && <div className="mb-4 text-[11px] text-amber-300 bg-amber-950/30 border border-amber-800/40 rounded-lg px-3 py-2">Sign in via <span className="font-bold">Employee Login</span> to claim a route and start picking.</div>}
+      <div className="space-y-3">
+        {routes.map((r) => {
+          const done = r.lines.filter((l) => l.picked).length, total = r.lines.length, pc = Math.round((done / total) * 100);
+          const mine = r.assignedTo === currentUser?.id, complete = done === total, open = openId === r.id;
+          const status = complete ? 'Complete' : r.assignedTo ? (mine ? 'Picking — you' : 'Assigned') : 'Open';
+          return (
+            <div key={r.id} className={`border rounded-xl overflow-hidden ${mine && !complete ? 'border-cyan-700/60' : 'border-slate-800'}`}>
+              <button onClick={() => setOpenId(open ? null : r.id)} className="w-full flex items-center justify-between px-4 py-3 bg-slate-950/50 hover:bg-slate-900 transition">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Truck size={15} className="text-slate-500 flex-none" />
+                  <div className="text-left min-w-0"><p className="text-sm font-bold text-slate-100 font-mono">{r.id} <span className="text-slate-400 font-sans font-normal">· {r.dest}</span></p>
+                    <p className="text-[10px] text-slate-500">{done}/{total} lines · {r.assignedTo ? (mine ? 'you' : r.assignedTo) : 'unassigned'}</p></div>
+                </div>
+                <div className="flex items-center gap-3 flex-none">
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${complete ? 'bg-emerald-900/40 text-emerald-300 border-emerald-700/50' : mine ? 'bg-cyan-900/40 text-cyan-300 border-cyan-700/50' : 'bg-slate-800 text-slate-400 border-slate-700'}`}>{status}</span>
+                  <div className="w-16 h-1.5 bg-slate-800 rounded-full overflow-hidden hidden sm:block"><div className="h-full bg-gradient-to-r from-blue-500 to-emerald-500" style={{ width: `${pc}%` }} /></div>
+                </div>
+              </button>
+              {open && (
+                <div className="p-3 bg-slate-900/40 space-y-1.5">
+                  {r.lines.map((l) => {
+                    const s = byCode[l.code], avail = s?.pallet ? splitCases(s.pallet).cases : 0, short = !l.picked && avail < l.cases;
+                    return (
+                      <div key={l.id} className={`flex items-center gap-3 px-3 py-2 rounded-lg border ${l.picked ? 'bg-emerald-950/20 border-emerald-900/40' : 'bg-slate-800/40 border-slate-700/50'}`}>
+                        {l.picked ? <CheckCircle2 size={16} className="text-emerald-400 flex-none" /> : <Circle size={16} className="text-slate-600 flex-none" />}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-slate-200 truncate">{PRODUCTS[l.sku]?.product || l.sku}</p>
+                          <p className="text-[10px] font-mono text-slate-500">{l.code} · {l.sku} · pick {l.cases} cs <span className={short ? 'text-red-400' : 'text-slate-600'}>(loc has {avail} cs)</span></p>
+                        </div>
+                        {l.picked ? <span className="text-[10px] text-emerald-400 font-bold">Picked</span>
+                          : <button disabled={!mine} onClick={() => onPickLine(r.id, l.id)} className="text-[11px] font-bold px-3 py-1 rounded-md bg-blue-600 hover:bg-blue-500 disabled:opacity-30 disabled:cursor-not-allowed text-white transition">Pick</button>}
+                      </div>
+                    );
+                  })}
+                  {!complete && !r.assignedTo && <button onClick={() => onStart(r.id)} disabled={!currentUser} className="w-full mt-1 text-xs font-bold py-2 rounded-lg bg-cyan-900/40 border border-cyan-700/50 text-cyan-200 hover:bg-cyan-800/40 disabled:opacity-40 disabled:cursor-not-allowed transition">Start Picking</button>}
+                  {complete && <p className="text-center text-[11px] text-emerald-400 font-bold py-1">Route complete ✓</p>}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 export default function EagleView() {
   const [activeTab, setActiveTab]   = useState('layout');
@@ -567,6 +692,8 @@ export default function EagleView() {
   const [dragCode, setDragCode]     = useState(null);
   const [sortKey, setSortKey]       = useState('code');
   const [sortDir, setSortDir]       = useState('asc');
+  const [currentUser, setCurrentUser] = useState(null);
+  const [routes, setRoutes]         = useState(() => ROUTES.map((r) => ({ ...r, lines: r.lines.map((l) => ({ ...l })) })));
 
   const addLog = useCallback((type, message) => setLogs((prev) => [{ time: new Date().toLocaleTimeString(), type, message }, ...prev]), []);
   const updateSlots = useCallback((fn) => setWh((prev) => ({ ...prev, slots: fn(prev.slots) })), []);
@@ -637,8 +764,8 @@ export default function EagleView() {
     if (next === s.pallet.eaches) { addLog('warning', `${code} ${delta > 0 ? 'at full pallet capacity' : 'already empty'} — no change.`); return; }
     updateSlots((prev) => prev.map((x) => x.code === code ? { ...x, pallet: { ...x.pallet, eaches: next }, inbound: next > 0 ? false : x.inbound } : x));
     const qty = Math.abs(delta), what = note || (qty === s.pallet.eachesPerCase ? '1 case' : `${fmt(qty)} ${plural(s.pallet.unit, qty).toLowerCase()}`);
-    addLog('system', `${delta > 0 ? 'Received' : 'Picked'} ${what} ${delta > 0 ? 'into' : 'from'} ${code} — now ${splitCases({ ...s.pallet, eaches: next }).cases} cs / ${fmt(next)} ${plural(s.pallet.unit, next).toLowerCase()}.`);
-  }, [byCode, addLog, updateSlots]);
+    addLog('system', `${delta > 0 ? 'Received' : 'Picked'} ${what} ${delta > 0 ? 'into' : 'from'} ${code} — now ${splitCases({ ...s.pallet, eaches: next }).cases} cs / ${fmt(next)} ${plural(s.pallet.unit, next).toLowerCase()}.${currentUser ? ` · ${currentUser.name}` : ''}`);
+  }, [byCode, addLog, updateSlots, currentUser]);
 
   const saveEdit = useCallback((code, form) => {
     const eaches = Math.min(form.cases * form.eachesPerCase + form.loose, form.casesPerPallet * form.eachesPerCase);
@@ -657,6 +784,25 @@ export default function EagleView() {
 
   const emptySlot = useCallback((code) => { updateSlots((prev) => prev.map((s) => s.code === code ? { ...s, pallet: null } : s)); addLog('warning', `${code} emptied — pallet removed.`); setModal(null); }, [addLog, updateSlots]);
   const onPick = useCallback((slot) => setModal({ code: slot.code, mode: slot.pallet ? 'detail' : 'place' }), []);
+
+  // ── Employee session & route picking ─────────────────────────────────────────
+  const login = useCallback((emp) => { setCurrentUser(emp); addLog('system', `${emp.name} (${emp.id}) signed in.`); }, [addLog]);
+  const logout = useCallback(() => setCurrentUser((u) => { if (u) addLog('system', `${u.name} signed out.`); return null; }), [addLog]);
+  const routeStart = useCallback((routeId) => {
+    if (!currentUser) { addLog('warning', 'Sign in (Employee Login) before picking a route.'); return; }
+    setRoutes((prev) => prev.map((r) => r.id === routeId ? { ...r, assignedTo: currentUser.id } : r));
+    addLog('system', `${currentUser.name} started picking route ${routeId}.`);
+  }, [currentUser, addLog]);
+  const routePickLine = useCallback((routeId, lineId) => {
+    const route = routes.find((r) => r.id === routeId); if (!route) return;
+    if (route.assignedTo !== currentUser?.id) { addLog('warning', `Start picking route ${routeId} first.`); return; }
+    const line = route.lines.find((l) => l.id === lineId); if (!line || line.picked) return;
+    const s = byCode[line.code]; const epc = s?.pallet?.eachesPerCase ?? PRODUCTS[line.sku].eachesPerCase;
+    if (s?.pallet) updateSlots((prev) => prev.map((x) => x.code === line.code ? { ...x, pallet: { ...x.pallet, eaches: Math.max(0, x.pallet.eaches - line.cases * epc) } } : x));
+    setRoutes((prev) => prev.map((r) => r.id === routeId ? { ...r, lines: r.lines.map((l) => l.id === lineId ? { ...l, picked: true } : l) } : r));
+    addLog('system', `Picked ${line.cases} cs ${line.sku} from ${line.code} for route ${routeId} · ${currentUser.name}.`);
+    if (route.lines.filter((l) => !l.picked && l.id !== lineId).length === 0) addLog('ai', `Route ${routeId} complete — all ${route.lines.length} lines picked by ${currentUser.name}.`);
+  }, [routes, currentUser, byCode, updateSlots, addLog]);
 
   // ── Builder ops ──────────────────────────────────────────────────────────────
   const addAisle = useCallback(() => {
@@ -707,8 +853,9 @@ export default function EagleView() {
     </th>
   );
   const dragSlot = dragCode ? byCode[dragCode] : null;
+  const activeRoute = currentUser ? routes.find((r) => r.assignedTo === currentUser.id && r.lines.some((l) => !l.picked)) : null;
   const toggleAisle = (a) => setCollapsed((c) => ({ ...c, [a]: !c[a] }));
-  const resetSim = () => { setWh(buildWarehouse()); setSearchTerm(''); setDragCode(null); setModal(null); addLog('system', 'Simulation reset to seed layout.'); };
+  const resetSim = () => { setWh(buildWarehouse()); setRoutes(ROUTES.map((r) => ({ ...r, assignedTo: null, lines: r.lines.map((l) => ({ ...l, picked: false })) }))); setSearchTerm(''); setDragCode(null); setModal(null); addLog('system', 'Simulation reset to seed layout.'); };
 
   const renderBay = (a, b) => (
     <BayRack key={`${a}-${b}`} aisle={a} bay={b} levels={groupLevels(layout[a]?.[b] || [])} side={(+b) % 2 ? 'right' : 'left'}
@@ -731,7 +878,16 @@ export default function EagleView() {
           </div>
           <p className="text-sm text-slate-400 mt-1">Beverage Distribution · Spatial Warehouse Map &amp; Case / Each Stocking Matrix</p>
         </div>
-        <button onClick={resetSim} className="flex items-center gap-2 text-xs bg-slate-900 border border-slate-800 hover:border-slate-700 px-3 py-2 rounded-lg text-slate-300 transition"><RefreshCw size={14} /> Reset Simulation</button>
+        <div className="flex items-center gap-2">
+          {currentUser && (
+            <button onClick={() => setActiveTab('login')} className="flex items-center gap-2 text-xs bg-slate-900 border border-cyan-800/50 px-3 py-2 rounded-lg hover:border-cyan-600 transition">
+              <span className="w-5 h-5 rounded-full bg-gradient-to-b from-cyan-600 to-blue-800 flex items-center justify-center text-[9px] font-bold text-white">{currentUser.name.split(' ').map((n) => n[0]).join('')}</span>
+              <span className="text-slate-200 font-medium">{currentUser.name}</span>
+              {activeRoute && <span className="text-cyan-300 font-mono">· picking {activeRoute.id}</span>}
+            </button>
+          )}
+          <button onClick={resetSim} className="flex items-center gap-2 text-xs bg-slate-900 border border-slate-800 hover:border-slate-700 px-3 py-2 rounded-lg text-slate-300 transition"><RefreshCw size={14} /> Reset Simulation</button>
+        </div>
       </header>
 
       {/* Legend */}
@@ -752,11 +908,15 @@ export default function EagleView() {
       </section>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-800 mb-6 gap-2">
-        {[{ id: 'layout', icon: <Boxes size={16} />, label: 'Warehouse Layout' }, { id: 'ledger', icon: <BarChart3 size={16} />, label: 'Item Ledger' }].map((tab) => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`px-4 py-2 text-sm font-medium transition flex items-center gap-2 border-b-2 -mb-px ${activeTab === tab.id ? 'border-blue-500 text-blue-400 bg-slate-900/50' : 'border-transparent text-slate-400 hover:text-slate-200'}`}>{tab.icon} {tab.label}</button>
+      <div className="flex border-b border-slate-800 mb-6 gap-2 overflow-x-auto">
+        {[
+          { id: 'layout', icon: <Boxes size={16} />, label: 'Warehouse Layout' },
+          { id: 'ledger', icon: <BarChart3 size={16} />, label: 'Item Ledger' },
+          { id: 'login',  icon: <UserRound size={16} />, label: 'Employee Login' },
+          { id: 'routes', icon: <RouteIcon size={16} />, label: 'Routes' },
+        ].map((tab) => (
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`px-4 py-2 text-sm font-medium transition flex items-center gap-2 border-b-2 -mb-px whitespace-nowrap ${activeTab === tab.id ? 'border-blue-500 text-blue-400 bg-slate-900/50' : 'border-transparent text-slate-400 hover:text-slate-200'}`}>{tab.icon} {tab.label}</button>
         ))}
-        <span className="px-3 py-2 text-xs text-slate-600 self-center font-mono">Employee Login · Routes → next</span>
       </div>
 
       {/* Main grid */}
@@ -844,6 +1004,10 @@ export default function EagleView() {
               </div>
             </div>
           )}
+
+          {activeTab === 'login' && (<LoginPanel employees={EMPLOYEES} currentUser={currentUser} onLogin={login} onLogout={logout} />)}
+
+          {activeTab === 'routes' && (<RoutesPanel routes={routes} currentUser={currentUser} byCode={byCode} onStart={routeStart} onPickLine={routePickLine} />)}
         </div>
 
         {/* Right column */}
